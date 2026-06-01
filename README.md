@@ -1,2 +1,1 @@
-# ai-native-os
-# ai-native-os
+# OSDev Learning from scratch at 16 y.o.
