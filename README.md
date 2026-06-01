@@ -1,1 +1,1 @@
-# OSDev Learning from scratch at 16 y.o.
+# OSDev Learning from scratch.
