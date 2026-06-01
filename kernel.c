@@ -4,7 +4,8 @@
 #include <stdnoreturn.h>
 #include "limine.h"
 #include "kernel/framebuffer.h"
-#include "kernel/types.h"
+#include "kernel/libs/types.h"
+#include "kernel/libs/serial.h"
 
 __attribute__((used, section(".limine_requests_start")))
 static volatile uint64_t limine_requests_start_marker[] = LIMINE_REQUESTS_START_MARKER;
@@ -40,19 +41,31 @@ static inline noreturn void hlt(void) {
 }
 
 void kmain(void) {
+	serial_init();
+
+	serial_write_string("Kernel Loaded!\n");
+
 	if (!LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision)) {
 		hlt();
 	}
 
+	// Memory Map
+
 	if (memmap_request.response == NULL) {
+		serial_write_string("No Memory Map Response!\n");
 		hlt();
 	}
 
-	if (framebuffer_request.response == NULL ||
-		framebuffer_request.response->framebuffer_count == 0) {
+	struct limine_memmap_response *memmap = memmap_request.response;
+
+	// Framebuffer
+
+	if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count == 0) {
+		serial_write_string("No FrameBuffer Response!\n");
 		hlt();
 	}
 
+	uint64_t framebuffer_count = framebuffer_request.response->framebuffer_count;
 	uint32_t green = color_rgba(0, 255, 0, 255);
 	uint32_t red = color_rgba(255, 0, 0, 255);
 	uint32_t blue = color_rgba(0, 0, 255, 255);
@@ -63,7 +76,9 @@ void kmain(void) {
 		pixel[i] = green;
 	}
 
-	draw_pixel(fb, 100, 30, red);
+	Position2D p1 = {100, 30};
+
+	draw_pixel(fb, p1, red);
 
 	Position2D positionStart;
 	Position2D positionEnd;
@@ -73,7 +88,7 @@ void kmain(void) {
 	positionEnd.x = 150;
 	positionEnd.y = 150;
 
-	draw_rectangle(fb, &positionStart, &positionEnd, blue);
+	draw_rectangle(fb, positionStart, positionEnd, blue);
 
 	hlt();
 }

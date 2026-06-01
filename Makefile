@@ -50,11 +50,11 @@ init:
 	cp $(LIMINE_DIR)/BOOTX64.EFI $(ISO_ROOT)/EFI/BOOT
 
 build: init
-	$(CC) $(CFLAGS) -T linker.ld kernel.c -o $(KERNEL_ELF)
+	$(CC) $(CFLAGS) -T linker.ld kernel.c kernel/libs/serial.c -o $(KERNEL_ELF)
 
 	$(XO) $(XFLAGS)
 
 	$(LIMINE_DIR)/limine.exe bios-install $(ISO_IMAGE)
 
 run:
-	$(QEMU) -cdrom $(ISO_IMAGE) -m 256M
+	$(QEMU) -cdrom $(ISO_IMAGE) -serial stdio -m 256M
