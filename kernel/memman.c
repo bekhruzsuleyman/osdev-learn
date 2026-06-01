@@ -118,10 +118,49 @@ uint64_t pmm_alloc() {
     return 0;
 }
 
+uint64_t pmm_allocate_pages(size_t size) {
+    uint64_t pages_count = ((size + FRAME_SIZE - 1) / FRAME_SIZE);
+
+    uint64_t starter_page = 0;
+    uint64_t consecutive = 0;
+
+    for (uint64_t byte = 0; byte < BITMAP_SIZE / 8; byte++) {
+        for (uint64_t bit = 0; bit < 8; bit++) {
+            uint64_t page = byte * 8 + bit;
+            if (!bitmap_get(page)) {
+                if (consecutive == 0) starter_page = page;
+                consecutive++;
+                if (consecutive == pages_count) {
+                    for (uint64_t i = 0; i < pages_count; i++) {
+                        bitmap_set(starter_page + i);
+                        used_pages++;
+                    }
+                    return starter_page * FRAME_SIZE;
+                }
+            } else {
+                consecutive = 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
 void pmm_free(uint64_t phys_addr) {
     uint64_t page = phys_addr / FRAME_SIZE;
     if (page >= BITMAP_SIZE) return;
     if(!bitmap_get(page)) return;
     bitmap_clear(page);
     used_pages--;
+}
+
+void pmm_free_pages(uint64_t phys_addr_base, size_t size) {
+    uint64_t pages_count = ((size + FRAME_SIZE - 1) / FRAME_SIZE);
+    for (uint64_t current_page = 0; current_page < pages_count; current_page++) {
+        uint64_t page = phys_addr_base / FRAME_SIZE + current_page;
+        if (page >= BITMAP_SIZE) continue;
+        if (!bitmap_get(page)) continue;
+        bitmap_clear(page);
+        used_pages--;
+    }
 }

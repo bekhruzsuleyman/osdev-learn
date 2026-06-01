@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+uint64_t read_cr0(void);
+void write_cr0(uint64_t val);
+uint64_t read_cr3(void);
+void write_cr3(uint64_t val);
+uint64_t read_cr4(void);
+void write_cr4(uint64_t val);
+
 typedef struct {
     uint32_t eax;
     uint32_t ebx;
@@ -25,6 +32,6 @@ static inline void cpu_vendor(char vendor[13]) {
     *(uint32_t *) (vendor + 4) = regs.edx;
     *(uint32_t *) (vendor + 8) = regs.ecx;
     vendor[12] = '\0';
-};
+}
 
 #endif
